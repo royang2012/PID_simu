@@ -14,28 +14,52 @@ class AnalogDevice:
     global vectorLength
     vectorLength = 50
 
-    def __init__(self, delayTime, bandWidth):
+    def __init__(self, delayTime, bandWidth, gain):
         self.delayTime = delayTime
         self.bandWidth = bandWidth
         self.dataIn = np.zeros(vectorLength)
         self.compResult = 0
         self.dataOut = np.zeros(vectorLength)
-        self.timeConst = sampleFreq/bandWidth
+        if sampleFreq <= bandWidth:
+            self.timeConst = 1
+        else:
+            self.timeConst = sampleFreq / bandWidth
+        self.gain = gain
 
     def deviceIni(self, inputVector, outputVector):
         self.dataIn = inputVector
         self.dataOut = outputVector
 
     def outputComp(self):
-        self.dataOut[0:vectorLength-2] = self.dataOut[1:vectorLength-1]
-        self.dataOut[-1] = lowpass(self.dataOut[vectorLength-2], self.compResult, self.timeConst)
+        self.dataOut[0:vectorLength-1] = self.dataOut[1:vectorLength]
+        self.dataOut[-1] = lowpass(self.dataOut[vectorLength-1], self.compResult, self.timeConst)
 
     @abstractmethod
-    def processComp(self, delayTime): pass
+    def processComp(self, delayTime, input2): pass
+
 
 class LowPassFilter(AnalogDevice):
+    def processComp(self, delayTime, input2=0):
+        self.compResult = self.dataIn[vectorLength - delayTime*sampleFreq - 1]
 
-    def processComp(self, delayTime):
-        self.compResult = self.dataIn[vectorLength-delayTime-1]
 
+class Microscopy(AnalogDevice):
+    def processComp(self, delayTime, input2):
+        self.compResult = self.gain * input2 *\
+                          self.dataIn[vectorLength - delayTime*sampleFreq - 1] ^ 2
 
+class EOM(AnalogDevice):
+    def __init__(self, delayTime, bandWidth, gain, minOut, maxOut):
+        AnalogDevice.__init__(self, delayTime, bandWidth, gain)
+        self.minOut = minOut
+        self.maxOut = maxOut
+
+    def processComp(self, delayTime, input2):
+        tempOut = self.gain * input2 * \
+                          self.dataIn[vectorLength - delayTime * sampleFreq - 1]
+        if tempOut >= self.minOut & tempOut <= self.maxOut:
+            self.compResult = tempOut
+        elif tempOut <= self.minOut:
+            self.compResult = self.minOut
+        else:
+            self.compResult = self.maxOut
