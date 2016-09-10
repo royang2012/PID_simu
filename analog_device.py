@@ -31,22 +31,23 @@ class AnalogDevice:
         self.dataOut = outputVector
 
     def outputComp(self):
-        self.dataOut[0:vectorLength-1] = self.dataOut[1:vectorLength]
-        self.dataOut[-1] = lowpass(self.dataOut[vectorLength-1], self.compResult, self.timeConst)
+        self.dataOut[0:-1] = self.dataOut[1:]
+        self.dataOut[-1] = lowpass(self.dataOut[-2], self.compResult, self.timeConst)
 
     @abstractmethod
-    def processComp(self, delayTime, input2): pass
+    def processComp(self, input2): pass
 
 
 class LowPassFilter(AnalogDevice):
-    def processComp(self, delayTime, input2=0):
-        self.compResult = self.dataIn[vectorLength - delayTime*sampleFreq - 1]
+    def processComp(self, input2=0):
+        self.compResult = self.dataIn[vectorLength - self.delayTime*sampleFreq - 1]
 
 
 class Microscopy(AnalogDevice):
-    def processComp(self, delayTime, input2):
-        self.compResult = self.gain * input2 *\
-                          self.dataIn[vectorLength - delayTime*sampleFreq - 1] ^ 2
+    def processComp(self, input2):
+        self.compResult = self.gain * input2 * \
+                          np.square(self.dataIn[vectorLength - self.delayTime*sampleFreq - 1])
+
 
 class EOM(AnalogDevice):
     def __init__(self, delayTime, bandWidth, gain, minOut, maxOut):
@@ -54,12 +55,26 @@ class EOM(AnalogDevice):
         self.minOut = minOut
         self.maxOut = maxOut
 
-    def processComp(self, delayTime, input2):
+    def processComp(self, input2):
         tempOut = self.gain * input2 * \
-                          self.dataIn[vectorLength - delayTime * sampleFreq - 1]
-        if tempOut >= self.minOut & tempOut <= self.maxOut:
+                          self.dataIn[vectorLength - self.delayTime * sampleFreq - 1]
+        if (tempOut >= self.minOut) & (tempOut <= self.maxOut):
             self.compResult = tempOut
         elif tempOut <= self.minOut:
             self.compResult = self.minOut
         else:
             self.compResult = self.maxOut
+
+
+class PMT(AnalogDevice):
+    def __init__(self, delayTime, bandWidth, gain, saturation):
+        AnalogDevice.__init__(self, delayTime, bandWidth, gain)
+        self.saturation = saturation
+
+    def processComp(self, input2=0):
+        tempOut = self.gain * \
+                  self.dataIn[vectorLength - self.delayTime * sampleFreq - 1]
+        if tempOut <= self.saturation:
+            self.compResult = tempOut
+        else:
+            self.compResult = self.saturation
