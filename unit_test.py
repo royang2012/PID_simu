@@ -27,6 +27,7 @@ pmt_output_array = np.zeros(sampleNum)
 pid_error_array = np.zeros(sampleNum)
 pid_kp_array = np.zeros(sampleNum)
 pid_integrator_array = np.zeros(sampleNum)
+pid_pin_array = np.zeros(sampleNum)
 
 # device declaration and initiation
 eoModulator = analog_device.EOM(0.4, 2, 1, 0.01, 10)
@@ -84,6 +85,8 @@ for i in range(0, sampleNum, 1):
     outputLP.outputComp()
 
     adConverter.dataIn = outputLP.dataOut
+    # adConverter.dataIn = pmTube.dataOut
+
     adConverter.processComp()
     adConverter.outputComp()
     pid_input_array[i] = adConverter.dataOut[-1]
@@ -100,19 +103,26 @@ for i in range(0, sampleNum, 1):
     xLog.DAAD()
     x_output_array[i] = xLog.logX
 
+    pid_pin_array[i] = xLog.pIn
 plt.figure(1)
 plt.subplot(521)
 plt.plot(xSin, dac_output_array)
 plt.ylabel("DAC Output Signal")
+# plt.subplot(523)
+# plt.plot(xSin, eom_output_array)
+# plt.ylabel("EOM Output Signal")
 plt.subplot(523)
-plt.plot(xSin, eom_output_array)
-plt.ylabel("EOM Output Signal")
-plt.subplot(525)
 plt.plot(xSin, microscope_output_array)
 plt.ylabel("Microscope Output Signal")
+# plt.subplot(527)
+# plt.plot(xSin, pmt_output_array)
+# plt.ylabel("PMT Output Signal")
 plt.subplot(527)
-plt.plot(xSin, pmt_output_array)
-plt.ylabel("PMT Output Signal")
+plt.plot(xSin, pid_pin_array)
+plt.ylabel("Log P_in Signal")
+plt.subplot(525)
+plt.plot(xSin, pid_input_array)
+plt.ylabel("log S_in Signal")
 plt.subplot(529)
 plt.plot(xSin, x_output_array)
 plt.ylabel("X Output Signal")
