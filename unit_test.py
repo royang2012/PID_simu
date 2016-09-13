@@ -6,15 +6,18 @@ import numpy.random as npr
 # generate a sine wave with certain frequency
 sampleFreq = 125
 f = 1
-sampleNum = 6000
+sampleNum = 10000
 xSin = np.arange(sampleNum)
 ySin = np.sin(2 * np.pi * f * xSin / sampleFreq) + npr.rand(sampleNum)/5 + 1.5
 
 # laser power
 laserPower = np.ones(sampleNum)
+# pid parameters
+sp = 2000; kp = 1; ki = 2; kd = 0; pmax = 1500; integrator = 1000000;
+
 # image
-x0 = np.zeros(sampleNum/6).astype(float)
-x1 = np.ones(sampleNum/6*5).astype(float)
+x0 = np.zeros(sampleNum/2).astype(float)
+x1 = np.ones(sampleNum/2).astype(float)
 x = np.concatenate((x0, x1))
 
 pid_input_array = np.zeros(sampleNum)
@@ -46,7 +49,7 @@ adConverter = analog_device.ADC(0.04)
 adConverter.deviceIni(np.zeros(200), np.zeros(200))
 adConverter2 = analog_device.ADC(0.04)
 adConverter2.deviceIni(np.zeros(200), np.zeros(200))
-pidController = FPGA.PID(2000, 1, 5, 0, 1500, 10000000)
+pidController = FPGA.PID(sp, kp, ki, kd, pmax, integrator)
 xLog = FPGA.LogComputation()
 # imaging loop
 for i in range(0, sampleNum, 1):
@@ -107,6 +110,7 @@ for i in range(0, sampleNum, 1):
 plt.figure(1)
 plt.subplot(521)
 plt.plot(xSin, dac_output_array)
+plt.title("kp = %d, ki = %d, kd = %d, sp = %d, pmax = %d, limit = %d"%(kp, ki, kd, sp, pmax, integrator))
 plt.ylabel("DAC Output Signal")
 # plt.subplot(523)
 # plt.plot(xSin, eom_output_array)

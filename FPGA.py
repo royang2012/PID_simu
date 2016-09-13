@@ -34,7 +34,7 @@ class PID:
         kdTer = self.error * self.kd
         self.kdTerDiff = kdTer - self.kdTerReg
         self.kdTerReg = kdTer
-        pidSum = int((self.kpTer + self.integrator + self.kdTerDiff) / 4096)
+        pidSum = int((self.kpTer + self.integrator + self.kdTerDiff) / 8191)
         if pidSum > self.pMax:
             pidSum = self.pMax
         elif pidSum < 0:
