@@ -1,15 +1,15 @@
 import math
 
 class PID:
-    def __init__(self, sp, kp, ki, kd, pMax, intLimit):
-        self.sp = sp
-        self.kp = kp
-        self.ki = ki
-        self.kd = kd
-        self.pMax = pMax
+    def __init__(self, sp_set, kp_set, ki_set, kd_set, pMax_set, intLimit_set):
+        self.sp_set = sp_set
+        self.kp_set = kp_set
+        self.ki_set = ki_set
+        self.kd_set = kd_set
+        self.pMax_set = pMax_set
         self.integrator = 0
         self.kdTerReg = 0
-        self.intLimit = intLimit
+        self.intLimit_set = intLimit_set
         self.dataIn = 0
         self.dataOut = 0
         self.error = 0
@@ -23,20 +23,44 @@ class PID:
         return int(self.dataOut)
 
     def PIDComp(self):
-        self.error = self.sp - self.dataIn
-        self.kpTer = self.error * self.kp
-        kiTer = self.error * self.ki
+        sp = self.sp_set
+        self.error = sp - self.dataIn
+        pMax = self.pMax_set
+
+        if (self.integrator >= 0.3 * self.intLimit_set):
+            if(self.dataIn > 3000):
+                ki = self.ki_set
+                kp = self.kp_set
+            else:
+                ki = 0.2 * self.ki_set
+                kp = 0.5 * self.kp_set
+        elif self.dataIn > 0.2 * sp:
+            if self.dataOut < 0.5 * pMax:
+                ki = 0.05 * self.ki_set
+                kp = 0.2 * self.kp_set
+            else:
+                ki = 0.1 * self.ki_set
+                kp = 0.4 * self.kp_set
+        else:
+            ki = 0.2 * self.ki_set
+            kp = 0.5 * self.kp_set
+        kd = self.kd_set
+
+        intLimit = self.intLimit_set
+        self.error = sp - self.dataIn
+        self.kpTer = self.error * kp
+        kiTer = self.error * ki
         self.integrator = self.integrator + kiTer
-        if self.integrator > self.intLimit:
-            self.integrator = self.intLimit
-        elif self.integrator < -self.intLimit:
-            self.integrator = -self.intLimit
-        kdTer = self.error * self.kd
+        if self.integrator > intLimit:
+            self.integrator = intLimit
+        elif self.integrator < -intLimit:
+            self.integrator = -intLimit
+        kdTer = self.error * kd
         self.kdTerDiff = kdTer - self.kdTerReg
         self.kdTerReg = kdTer
-        pidSum = int((self.kpTer + self.integrator + self.kdTerDiff) / 8191)
-        if pidSum > self.pMax:
-            pidSum = self.pMax
+        pidSum = int((self.kpTer + self.integrator + self.kdTerDiff) / 4096)
+        if pidSum > pMax:
+            pidSum = pMax
         elif pidSum < 0:
             pidSum = 0
         self.dataOut = pidSum

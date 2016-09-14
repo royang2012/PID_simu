@@ -13,12 +13,14 @@ ySin = np.sin(2 * np.pi * f * xSin / sampleFreq) + npr.rand(sampleNum)/5 + 1.5
 # laser power
 laserPower = np.ones(sampleNum)
 # pid parameters
-sp = 2000; kp = 1; ki = 2; kd = 0; pmax = 1500; integrator = 1000000;
+sp_set = 3000; kp_set = 180; ki_set = 30; kd_set = 0
+pmax_set = 1500; integrator_set = 10000000;
 
 # image
-x0 = np.zeros(sampleNum/2).astype(float)
-x1 = np.ones(sampleNum/2).astype(float)
-x = np.concatenate((x0, x1))
+x0 = np.zeros(sampleNum/10).astype(float)
+x1 = np.ones(sampleNum/5).astype(float) * 10
+x2 = np.ones(sampleNum/10 * 7).astype(float) * 1
+x = np.concatenate((x0, x1, x2))
 
 pid_input_array = np.zeros(sampleNum)
 pid_output_array = np.zeros(sampleNum)
@@ -49,7 +51,7 @@ adConverter = analog_device.ADC(0.04)
 adConverter.deviceIni(np.zeros(200), np.zeros(200))
 adConverter2 = analog_device.ADC(0.04)
 adConverter2.deviceIni(np.zeros(200), np.zeros(200))
-pidController = FPGA.PID(sp, kp, ki, kd, pmax, integrator)
+pidController = FPGA.PID(sp_set, kp_set, ki_set, kd_set, pmax_set, integrator_set)
 xLog = FPGA.LogComputation()
 # imaging loop
 for i in range(0, sampleNum, 1):
@@ -83,12 +85,12 @@ for i in range(0, sampleNum, 1):
     pmTube.outputComp()
     pmt_output_array[i] = pmTube.dataOut[-1]
 
-    outputLP.dataIn = pmTube.dataOut
-    outputLP.processComp()
-    outputLP.outputComp()
-
-    adConverter.dataIn = outputLP.dataOut
-    # adConverter.dataIn = pmTube.dataOut
+    # outputLP.dataIn = pmTube.dataOut
+    # outputLP.processComp()
+    # outputLP.outputComp()
+    #
+    # adConverter.dataIn = outputLP.dataOut
+    adConverter.dataIn = pmTube.dataOut
 
     adConverter.processComp()
     adConverter.outputComp()
@@ -110,17 +112,17 @@ for i in range(0, sampleNum, 1):
 plt.figure(1)
 plt.subplot(521)
 plt.plot(xSin, dac_output_array)
-plt.title("kp = %d, ki = %d, kd = %d, sp = %d, pmax = %d, limit = %d"%(kp, ki, kd, sp, pmax, integrator))
+plt.title("kp = %d, ki = %d, kd = %d, sp = %d, pmax = %d, limit = %d"%(kp_set, ki_set, kd_set, sp_set, pmax_set, integrator_set))
 plt.ylabel("DAC Output Signal")
 # plt.subplot(523)
 # plt.plot(xSin, eom_output_array)
 # plt.ylabel("EOM Output Signal")
+# plt.subplot(523)
+# plt.plot(xSin, microscope_output_array)
+# plt.ylabel("Microscope Output Signal")
 plt.subplot(523)
-plt.plot(xSin, microscope_output_array)
-plt.ylabel("Microscope Output Signal")
-# plt.subplot(527)
-# plt.plot(xSin, pmt_output_array)
-# plt.ylabel("PMT Output Signal")
+plt.plot(xSin, pmt_output_array)
+plt.ylabel("PMT Output Signal")
 plt.subplot(527)
 plt.plot(xSin, pid_pin_array)
 plt.ylabel("Log P_in Signal")
