@@ -6,7 +6,7 @@ import numpy.random as npr
 # generate a sine wave with certain frequency
 sampleFreq = 125
 f = 1
-sampleNum = 2000
+sampleNum = 10000
 xSin = np.arange(sampleNum)
 ySin = np.sin(2 * np.pi * f * xSin / sampleFreq) + npr.rand(sampleNum)/5 + 1.5
 
@@ -36,21 +36,21 @@ pid_pin_array = np.zeros(sampleNum)
 
 # device declaration and initiation
 eoModulator = analog_device.EOM(0.4, 2, 1, 0.01, 10)
-eoModulator.deviceIni(np.zeros(500), np.zeros(500))
+eoModulator.deviceIni(np.zeros(200), np.zeros(200))
 tpMicroscope = analog_device.Microscopy(0, 125, 0.005)
-tpMicroscope.deviceIni(np.zeros(500), np.zeros(500))
+tpMicroscope.deviceIni(np.zeros(200), np.zeros(200))
 pmTube = analog_device.PMT(0.2, 50, 10000, 4)
-pmTube.deviceIni(np.zeros(500), np.zeros(500))
+pmTube.deviceIni(np.zeros(200), np.zeros(200))
 pDidode = analog_device.PhotoDidode(0.2, 20, 4, 2)
-pDidode.deviceIni(np.zeros(500), np.zeros(500))
+pDidode.deviceIni(np.zeros(200), np.zeros(200))
 outputLP = analog_device.LowPassFilter(0.04, 1, 1)
-outputLP.deviceIni(np.zeros(500), np.zeros(500))
+outputLP.deviceIni(np.zeros(200), np.zeros(200))
 daConverter = analog_device.DAC(0.04)
-daConverter.deviceIni(np.zeros(500), np.zeros(500))
+daConverter.deviceIni(np.zeros(200), np.zeros(200))
 adConverter = analog_device.ADC(0.04)
-adConverter.deviceIni(np.zeros(500), np.zeros(500))
+adConverter.deviceIni(np.zeros(200), np.zeros(200))
 adConverter2 = analog_device.ADC(0.04)
-adConverter2.deviceIni(np.zeros(500), np.zeros(500))
+adConverter2.deviceIni(np.zeros(200), np.zeros(200))
 pidController = FPGA.PID(sp_set, kp_set, ki_set, kd_set, pmax_set, integrator_set)
 xLog = FPGA.LogComputation()
 # imaging loop

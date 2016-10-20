@@ -17,7 +17,7 @@ class AnalogDevice:
     global sampleFreq #us
     sampleFreq = 1/timeResolution
     global vectorLength
-    vectorLength = 200
+    vectorLength = 500 # 4us, pixel time
 
     def __init__(self, delayTime, bandWidth, gain):
         self.delayTime = float(delayTime)
